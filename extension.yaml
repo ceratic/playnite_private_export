@@ -1,0 +1,7 @@
+﻿Id: MyLibExport_a4985df9-05e9-4ae5-b9e1-153cd81d2440
+Name: Generic Plugin
+Author: John Doe
+Version: 1.0
+Module: MyLibExport.dll
+Type: GenericPlugin
+Icon: icon.png

@@ -1,0 +1,8 @@
+AddonId: MyLibExport_62d53f25-4e62-4f27-a49e-89e73cb1fd48
+Packages:
+  - Version: 0.1
+    RequiredApiVersion: 6.2.0
+    ReleaseDate: 2022-08-27
+    PackageUrl: https://github.com/mylibexport/playnite-mylibexport/releases/download/0.1/MyLibExport_0_1.pext
+    Changelog:
+      - Beta MyLibExport plugin release
