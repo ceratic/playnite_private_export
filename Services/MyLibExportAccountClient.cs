@@ -1,24 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MyLibExport.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using Playnite.SDK;
 using Playnite.SDK.Data;
-using System.Web;
-using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Net.Http.Headers;
+using Playnite.SDK.Models;
+using System;
 using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
+using System.IO;
 using System.Linq;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
-using MyLibExport.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using System.Net.Http.Headers;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace MyLibExport.Services
 {
@@ -29,26 +37,31 @@ namespace MyLibExport.Services
         private readonly string cookiesPath;
         private readonly MyLibExport plugin;
         // DEV
-        //private const string protocol = "http://";
-        //private const string domain = "localhost";
-        //private const string domainDev = ":3000";
+        private const string protocol = "http://";
+        private const string domain = "192.168.178.127";
+        private const string domainDev = ":545";
         // PROD
-        private const string protocol = "https://";
-        private const string domain = "www.mylibexport.link";
-        private const string domainDev = "";
+        //private const string protocol = "https://";
+        //private const string domain = "www.mylibexport.link";
+        //private const string domainDev = "";
         // URLs
         private const string loginUrl = protocol + domain + domainDev + "/users/sign_in";
         private const string homepageUrl = protocol + domain + domainDev + "/";
         private const string gameListUrl = protocol + domain + domainDev + "/api/v1/games";
+        private const string gameImageUrl = protocol + domain + domainDev + "/api/v1/games/image";
         private const string gameDeleteUrl = protocol + domain + domainDev + "/api/v1/games/delete";
         private const string userCheckUrl = protocol + domain + domainDev + "/api/v1/users/me";
+
+        public string coverImage { get; private set; }
+        public string iconImage { get; private set; }
+        public string backgroundImage { get; private set; }
 
         private DefaultContractResolver contractResolver;
         public MyLibExportAccountClient(MyLibExport plugin, IPlayniteAPI api)
         {
             this.api = api;
             this.plugin = plugin;
-            cookiesPath = Path.Combine(plugin.GetPluginUserDataPath(), "cookies.bin");
+            cookiesPath = System.IO.Path.Combine(plugin.GetPluginUserDataPath(), "cookies.bin");
             contractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new SnakeCaseNamingStrategy()
@@ -186,13 +199,19 @@ namespace MyLibExport.Services
             {
                 var games = new GamesPost();
                 games.games = api.Database.Games.ToList();
+                //games = api.Database.Games;
                 var gamesCount = api.Database.Games.Count;
                 args.Text = "Sending " + gamesCount + " game(s) to MyLibExport.";
-                var serializedData = ToJson(games);
+                var serializedData = ToJson(api.Database.Games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
                 var byteContent = new ByteArrayContent(buffer);
                 byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+                foreach (var game in api.Database.Games)
+                {
+                    args.Text = "Sending Images:" + game.Name + " to MyLibExport.";
+                    TryGenerateImages(game);
+                }
                 var resp = httpClient.PostAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
                 var strResponse = await resp.Content.ReadAsStringAsync();
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
@@ -216,6 +235,7 @@ namespace MyLibExport.Services
             return;
         }
 
+
         public async Task UpdateGames(GlobalProgressActionArgs args, List<Playnite.SDK.Models.Game> databaseGames)
         {
             args.Text = "Reading authentication.";
@@ -224,14 +244,13 @@ namespace MyLibExport.Services
             using (var httpClient = new HttpClient(handler))
             {
                 var games = new GamesPost();
-                games.games = databaseGames;
+                games.games = databaseGames; 
                 var gamesCount = databaseGames.Count;
                 args.Text = "Sending " + gamesCount + " games to MyLibExport.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
                 var byteContent = new ByteArrayContent(buffer);
                 byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
                 var resp = httpClient.PutAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
                 var strResponse = await resp.Content.ReadAsStringAsync();
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
@@ -251,6 +270,7 @@ namespace MyLibExport.Services
                         throw new Exception(strResponse);
                     }
                 }
+                throw new Exception("Task UpdateGames. #224");
             }
             return;
         }
@@ -271,6 +291,7 @@ namespace MyLibExport.Services
 
                 var resp = httpClient.PutAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
                 var strResponse = await resp.Content.ReadAsStringAsync();
+                throw new Exception("Task UpdateGames.");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     throw new Exception("User is not authenticated.");
@@ -339,6 +360,8 @@ namespace MyLibExport.Services
             {
                 var games = new GamesPost();
                 games.games = databaseGames;
+                //var game = new GamePutOld();
+                //games.games = new GamePostOld();
                 var gamesCount = databaseGames.Count;
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
@@ -375,6 +398,7 @@ namespace MyLibExport.Services
             using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
             using (var httpClient = new HttpClient(handler))
             {
+                var filesDir = "C:\\Users\\larsb\\AppData\\Roaming\\Playnite\\library\\files\\";
                 var game = new GamePutOld();
                 game.game = new GamePostOld();
                 args.Text = "Reading game playtime";
@@ -411,6 +435,13 @@ namespace MyLibExport.Services
                 game.game.use_global_post_script = databaseGame.UseGlobalPostScript;
                 game.game.use_global_pre_script = databaseGame.UseGlobalPreScript;
                 game.game.user_score = databaseGame.UserScore;
+                game.game.image_cover = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.CoverImage));
+                game.game.image_cover_1 = databaseGame.CoverImage;
+                game.game.image_backdrop = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.BackgroundImage));
+                game.game.image_backdrop_1 = databaseGame.BackgroundImage;
+                game.game.image_icon = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.Icon));
+                game.game.image_icon_1 = filesDir + databaseGame.Icon;
+                game.game.banana = "Ich bin nur ein TEST !";
                 game.game.version = databaseGame.Version;
                 if (args.CancelToken.IsCancellationRequested)
                 {
@@ -425,6 +456,7 @@ namespace MyLibExport.Services
 
                 var resp = httpClient.PutAsync(gameListUrl + "/" + databaseGame.Id, byteContent).GetAwaiter().GetResult();
                 var strResponse = await resp.Content.ReadAsStringAsync();
+                throw new Exception("Task UpdateGame. #377");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     throw new Exception("User is not authenticated.");
@@ -452,6 +484,7 @@ namespace MyLibExport.Services
             using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
             using (var httpClient = new HttpClient(handler))
             {
+                var filesDir = "C:\\Users\\larsb\\AppData\\Roaming\\Playnite\\library\\files\\";
                 var game = new GamePutOld();
                 game.game = new GamePostOld();
                 game.game.name = databaseGame.Name;
@@ -488,6 +521,13 @@ namespace MyLibExport.Services
                 game.game.use_global_pre_script = databaseGame.UseGlobalPreScript;
                 game.game.user_score = databaseGame.UserScore;
                 game.game.version = databaseGame.Version;
+                game.game.image_cover = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.CoverImage));
+                game.game.image_cover_1 = databaseGame.CoverImage;
+                game.game.image_backdrop = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.BackgroundImage));
+                game.game.image_backdrop_1 = databaseGame.BackgroundImage;
+                game.game.image_icon = Convert.ToBase64String(File.ReadAllBytes(filesDir + databaseGame.Icon));
+                game.game.image_icon_1 = filesDir + databaseGame.Icon;
+                game.game.banana = "Ich bin nur ein TEST !";
 
                 var serializedData = ToJson(game);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
@@ -496,6 +536,7 @@ namespace MyLibExport.Services
 
                 var resp = httpClient.PutAsync(gameListUrl + "/" + databaseGame.Id, byteContent).GetAwaiter().GetResult();
                 var strResponse = await resp.Content.ReadAsStringAsync();
+                throw new Exception("Task UpdateGame. #464");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     throw new Exception("User is not authenticated.");
@@ -573,6 +614,93 @@ namespace MyLibExport.Services
             }
 
             dumpCookies();
+        }
+
+        private void TryGenerateImages(Game game)
+        {
+            var name = game.Name;
+            coverImage = "";
+            iconImage = "";
+            backgroundImage = "";
+            var plattform = game.Platforms.ToString();
+
+            WriteLog(name);
+            if (game.CoverImage != null)
+            {
+                var coverPath = api.Database.GetFullFilePath(game.CoverImage);
+                WriteLog("cover :: " + coverPath);
+                if (coverPath != null)
+                {
+                    coverImage = Convert.ToBase64String(File.ReadAllBytes(coverPath));
+
+                }
+
+            }
+
+            if (game.Icon != null)
+            {
+                var iconPath = api.Database.GetFullFilePath(game.Icon);
+                WriteLog("ico :: " + iconPath);
+                if (iconPath != null)
+                {
+                    iconImage = Convert.ToBase64String(File.ReadAllBytes(iconPath));
+
+                }
+
+            }
+
+            if (game.BackgroundImage != null)
+            {
+                var backgroundPath = api.Database.GetFullFilePath(game.BackgroundImage);
+                WriteLog("back :: " + backgroundPath);
+                if (backgroundPath != null)
+                {
+                    backgroundImage = Convert.ToBase64String(File.ReadAllBytes(backgroundPath));
+
+                }
+
+            }
+
+            using (WebClient client = new WebClient())
+            {
+                NameValueCollection postData = new NameValueCollection()
+                        {
+                              { "name", name },
+                              { "plattform", plattform },
+                              { "cover", coverImage },
+                              { "icon", iconImage },
+                              { "background", backgroundImage },
+                        };
+
+                string pagesource = Encoding.UTF8.GetString(client.UploadValues(gameImageUrl, postData));
+                WriteLog(pagesource);
+            }
+            WriteLog("-----------------------");
+        }
+
+        public static void WriteLog(string strLog)
+        {
+            StreamWriter log;
+            FileStream fileStream = null;
+            DirectoryInfo logDirInfo = null;
+            FileInfo logFileInfo;
+
+            string logFilePath = "D:\\Logs\\";
+            logFilePath = logFilePath + "Log-" + System.DateTime.Today.ToString("MM-dd-yyyy") + "." + "txt";
+            logFileInfo = new FileInfo(logFilePath);
+            logDirInfo = new DirectoryInfo(logFileInfo.DirectoryName);
+            if (!logDirInfo.Exists) logDirInfo.Create();
+            if (!logFileInfo.Exists)
+            {
+                fileStream = logFileInfo.Create();
+            }
+            else
+            {
+                fileStream = new FileStream(logFilePath, FileMode.Append);
+            }
+            log = new StreamWriter(fileStream);
+            log.WriteLine(strLog);
+            log.Close();
         }
     }
 }

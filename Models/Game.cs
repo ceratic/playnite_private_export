@@ -42,6 +42,13 @@ namespace MyLibExport.Models
         public bool use_global_pre_script { get; set; }
         public int? user_score { get; set; }
         public string version { get; set; }
+        public string image_cover { get; internal set; }
+        public string image_backdrop { get; internal set; }
+        public string image_icon { get; internal set; }
+        public string image_cover_1 { get; internal set; }
+        public string image_backdrop_1 { get; internal set; }
+        public string image_icon_1 { get; internal set; }
+        public string banana { get; internal set; }
     }
 
     class GameOld : GamePostOld
@@ -56,6 +63,7 @@ namespace MyLibExport.Models
 
     class GamesPost
     {
+        //public List<GamePostOld> games;
         public List<Playnite.SDK.Models.Game> games;
     }
 

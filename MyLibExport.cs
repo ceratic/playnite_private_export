@@ -83,10 +83,10 @@ namespace MyLibExport
 
             if (scanRes.Error != null)
             {
-                logger.Error(scanRes.Error, "MyLibExport synchronization failed.");
+                logger.Error(scanRes.Error, "1 MyLibExport synchronization failed.");
                 if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                 {
-                    dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
+                    dialogs.ShowErrorMessage("1 MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
                 }
             }
         }
@@ -105,15 +105,15 @@ namespace MyLibExport
                         IsIndeterminate = true
                     }
                 );
-
+                /*
                 if (scanRes.Error != null)
                 {
-                    logger.Error(scanRes.Error, "MyLibExport synchronization failed.");
+                    logger.Error(scanRes.Error, "2 scanRes MyLibExport synchronization failed.");
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + scanRes.Error.ToString(), "");
+                        dialogs.ShowErrorMessage("2 scanRes MyLibExport synchronization failed." + "\n" + scanRes.Error.ToString(), "");
                     }
-                }
+                }*/
             }
             else
             {
@@ -125,7 +125,7 @@ namespace MyLibExport
                 {
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + e.ToString(), "");
+                        dialogs.ShowErrorMessage("2 UpdateGames MyLibExport synchronization failed." + "\n" + e.ToString(), "");
                     }
                 }
             }
@@ -147,11 +147,11 @@ namespace MyLibExport
 
                 if (scanRes.Error != null)
                 {
-                    logger.Error(scanRes.Error, "MyLibExport synchronization failed.");
+                    logger.Error(scanRes.Error, "3 MyLibExport synchronization failed.");
 
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
+                        dialogs.ShowErrorMessage("3 scanRes MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
                     }
                 }
             }
@@ -165,7 +165,7 @@ namespace MyLibExport
                 {
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + e.Message, "");
+                        dialogs.ShowErrorMessage("3 DeleteGames MyLibExport synchronization failed." + "\n" + e.Message, "");
                     }
                 }
             }
@@ -189,11 +189,11 @@ namespace MyLibExport
 
                 if (scanRes.Error != null)
                 {
-                    logger.Error(scanRes.Error, "MyLibExport synchronization failed.");
+                    logger.Error(scanRes.Error, "4 MyLibExport synchronization failed.");
 
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
+                        dialogs.ShowErrorMessage("4 scanRes MyLibExport synchronization failed." + "\n" + scanRes.Error.Message, "");
                     }
                 }
             }
@@ -208,7 +208,7 @@ namespace MyLibExport
 
                     if (LoadPluginSettings<MyLibExportSettings>().showErrors)
                     {
-                        dialogs.ShowErrorMessage("MyLibExport synchronization failed." + "\n" + e.Message, "");
+                        dialogs.ShowErrorMessage("4 UpdateGame MyLibExport synchronization failed." + "\n" + e.Message, "");
                     }
                 }
             }

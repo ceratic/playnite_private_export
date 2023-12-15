@@ -39,7 +39,7 @@ namespace MyLibExport
             {
                 try
                 {
-                    clientApi.CheckAuthentication().GetAwaiter().GetResult();
+                    //clientApi.CheckAuthentication().GetAwaiter().GetResult();
                     return true;
                 }
                 catch
